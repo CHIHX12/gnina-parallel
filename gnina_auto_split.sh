@@ -17,7 +17,8 @@ AUTOBOX=/path/to/autobox.pdb
 OUTDIR=/path/to/output
 # ================================================
 
-N_GPU=${1:-12}   # passed from submit.sh
+N_GPU=${1:-12}         # passed from submit.sh
+SCRIPT_DIR=${2:-.}    # passed from submit.sh
 GPU_PER_NODE=4
 
 mkdir -p $OUTDIR/split $OUTDIR/result
@@ -34,7 +35,7 @@ echo "    GPU 數:   $N_GPU"
 PER_GPU=$(( (TOTAL + N_GPU - 1) / N_GPU ))
 echo "    各 GPU:   約 $PER_GPU 個配體"
 
-python3 $(dirname $0)/split_sdf.py "$LIGAND" "$OUTDIR/split" $N_GPU
+python3 $SCRIPT_DIR/split_sdf.py "$LIGAND" "$OUTDIR/split" $N_GPU
 
 echo ""
 echo "[2] ${N_GPU}GPU 並行実行中..."
@@ -51,7 +52,7 @@ for IDX in $(seq 0 $((N_NODES-1))); do
 
     srun --ntasks=1 --gres=gpu:4 \
         --nodelist=$NODE \
-        bash $(dirname $0)/node_runner.sh \
+        bash $SCRIPT_DIR/node_runner.sh \
         $SIF $RECEPTOR $AUTOBOX $OUTDIR $OUTDIR/split $START $GPU_PER_NODE &
 done
 
