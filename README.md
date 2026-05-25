@@ -4,6 +4,8 @@ Slurm scripts for running [gnina](https://github.com/gnina/gnina) molecular dock
 
 **Language / 語言:** [English](README.md) | [中文](README_zh.md)
 
+> **All scripts in this repository have been tested on a real HPC cluster (3 nodes × 4 GPUs = 12 GPUs, RHEL 7, Slurm 20.11).**
+
 ---
 
 ## What is this?
@@ -69,8 +71,8 @@ sbatch gnina_auto_split.sh
 # Check job status
 squeue -u $USER
 
-# Watch the log in real time
-tail -f gnina_split_<JOBID>.log
+# Watch the log in real time (log path is set in gnina_auto_split.sh --output)
+tail -f /your/output/path/gnina_split_<JOBID>.log
 ```
 
 ### Step 5 — Check results
