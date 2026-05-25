@@ -158,6 +158,23 @@ N_GPU=28
 
 **Recommended: `--cpu 8`** (diminishing returns beyond 8 — tested on real cluster)
 
+### 12-GPU Parallel Benchmark (3 nodes × 4 GPUs)
+
+| Item | Value |
+|------|-------|
+| Ligands | 144 (12 per GPU) |
+| Total time | **328 seconds (~5.5 min)** |
+| Average per ligand | **2.2 seconds** |
+| Total poses | 1296 (9 poses per ligand) |
+
+**Estimated throughput:**
+
+| Ligands | Estimated time (12 GPU) |
+|---------|------------------------|
+| 10,000  | ~6 hours               |
+| 100,000 | ~2.5 days              |
+| 1,000,000 | ~25 days (use 28 GPU to reduce) |
+
 ---
 
 ## Requirements
