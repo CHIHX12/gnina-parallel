@@ -167,13 +167,24 @@ N_GPU=28
 | Average per ligand | **2.2 seconds** |
 | Total poses | 1296 (9 poses per ligand) |
 
+### 24-GPU Parallel Benchmark (6 nodes × 4 GPUs)
+
+| Item | Value |
+|------|-------|
+| Ligands | 288 (12 per GPU) |
+| Total time | **343 seconds (~5.7 min)** |
+| Average per ligand | **1.1 seconds** |
+| Total poses | 2592 (9 poses per ligand) |
+
+> Doubling GPUs (12→24) with double the ligands took nearly the same time — confirms linear scaling.
+
 **Estimated throughput:**
 
-| Ligands | Estimated time (12 GPU) |
-|---------|------------------------|
-| 10,000  | ~6 hours               |
-| 100,000 | ~2.5 days              |
-| 1,000,000 | ~25 days (use 28 GPU to reduce) |
+| Ligands | 12 GPU | 24 GPU |
+|---------|--------|--------|
+| 10,000  | ~6 hours | ~3 hours |
+| 100,000 | ~2.5 days | ~1.3 days |
+| 1,000,000 | ~25 days | ~13 days |
 
 ---
 
