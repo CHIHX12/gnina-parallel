@@ -156,7 +156,7 @@ N_GPU=28
 | 8     | 158s              | **4.9x** |
 | 10    | 161s              | 4.8x    |
 
-**Recommended: `--cpu 10`** (40 CPUs per node ÷ 4 GPUs = 10 CPUs per gnina instance)
+**Recommended: `--cpu 8`** (diminishing returns beyond 8 — tested on real cluster)
 
 ---
 
