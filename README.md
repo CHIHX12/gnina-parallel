@@ -115,7 +115,7 @@ Each docked pose has 3 scores:
 
 ## Resource Configuration
 
-Tested on 3-node × 4-GPU cluster:
+### 12 GPU (3 nodes × 4 GPU)
 
 ```bash
 #SBATCH -N 3
@@ -124,6 +124,28 @@ Tested on 3-node × 4-GPU cluster:
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=40
 ```
+
+```bash
+# In gnina_auto_split.sh
+N_GPU=12
+```
+
+### 28 GPU (7 nodes × 4 GPU) — Full cluster
+
+```bash
+#SBATCH -N 7
+#SBATCH --ntasks=7
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:4
+#SBATCH --cpus-per-task=40
+```
+
+```bash
+# In gnina_auto_split.sh
+N_GPU=28
+```
+
+> Just change `-N`, `--ntasks`, and `N_GPU` — everything else is automatic.
 
 ### CPU Benchmark Results (per GPU)
 
@@ -134,7 +156,7 @@ Tested on 3-node × 4-GPU cluster:
 | 8     | 158s              | **4.9x** |
 | 10    | 161s              | 4.8x    |
 
-**Recommended: `--cpu 8`** (diminishing returns beyond 8)
+**Recommended: `--cpu 10`** (40 CPUs per node ÷ 4 GPUs = 10 CPUs per gnina instance)
 
 ---
 

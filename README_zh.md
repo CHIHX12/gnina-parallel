@@ -59,7 +59,7 @@ result_01.sdf  result_02.sdf  ...  result_12.sdf
 
 ## 資源配置
 
-以3節點 × 4GPU叢集測試：
+### 12 GPU（3節點 × 4GPU）
 
 ```bash
 #SBATCH -N 3
@@ -68,6 +68,28 @@ result_01.sdf  result_02.sdf  ...  result_12.sdf
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=40
 ```
+
+```bash
+# gnina_auto_split.sh 設定
+N_GPU=12
+```
+
+### 28 GPU（7節點 × 4GPU）— 全叢集
+
+```bash
+#SBATCH -N 7
+#SBATCH --ntasks=7
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:4
+#SBATCH --cpus-per-task=40
+```
+
+```bash
+# gnina_auto_split.sh 設定
+N_GPU=28
+```
+
+> 只需修改 `-N`、`--ntasks` 和 `N_GPU`，其餘全部自動處理。
 
 ### CPU數量基準測試結果（單GPU）
 
@@ -78,7 +100,7 @@ result_01.sdf  result_02.sdf  ...  result_12.sdf
 | 8     | 158秒          | **4.9倍** |
 | 10    | 161秒          | 4.8倍  |
 
-**建議使用 `--cpu 8`**（超過8顆CPU後效益遞減）
+**建議使用 `--cpu 10`**（每節點40 CPU ÷ 4個gnina = 每個gnina 10顆CPU）
 
 ## 環境需求
 
