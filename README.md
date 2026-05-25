@@ -2,9 +2,21 @@
 
 Slurm scripts for running [gnina](https://github.com/gnina/gnina) molecular docking in parallel across multiple nodes and GPUs.
 
-## Overview
+**Language / 語言:** [English](README.md) | [中文](README_zh.md)
 
-Automatically splits a large SDF ligand file and distributes docking jobs across multiple GPUs on multiple nodes using Slurm.
+---
+
+## What is this?
+
+**gnina** is a deep learning-based molecular docking tool. This repository provides scripts to run gnina on a **Slurm HPC cluster** using multiple GPUs in parallel.
+
+> **Beginner friendly!** You only need to change 5 lines to run your own docking job.
+
+---
+
+## How it works
+
+You give it one large SDF file. It automatically splits it and sends each chunk to a different GPU — all at the same time.
 
 ```
 Input SDF (e.g. 1,000,000 ligands)
@@ -15,10 +27,81 @@ Node1: GPU0 GPU1 GPU2 GPU3
 Node2: GPU0 GPU1 GPU2 GPU3
 Node3: GPU0 GPU1 GPU2 GPU3
         ↓
-  Merge results
+  Output: result_01.sdf ~ result_12.sdf
 ```
 
-## Files
+---
+
+## Beginner's Guide
+
+### Step 1 — Check your files
+
+You need:
+- A **receptor** file (protein, `.pdb` format)
+- A **ligand** file (small molecules, `.sdf` format)
+- A **reference ligand** for autobox (`.pdb` format, defines the docking box)
+- A **gnina Singularity image** (`.sif` file)
+
+### Step 2 — Edit `gnina_auto_split.sh`
+
+Open the file and change only the settings section:
+
+```bash
+# ========== Settings ==========
+SIF=/path/to/gnina.sif          # Path to your gnina .sif file
+RECEPTOR=/path/to/receptor.pdb  # Your receptor (protein)
+LIGAND=/path/to/ligands.sdf     # Your ligands (can be millions)
+AUTOBOX=/path/to/autobox.pdb    # Reference ligand for docking box
+OUTDIR=/path/to/output          # Where to save results
+N_GPU=12                         # How many GPUs to use
+# ==============================
+```
+
+### Step 3 — Submit the job
+
+```bash
+sbatch gnina_auto_split.sh
+```
+
+### Step 4 — Check progress
+
+```bash
+# Check job status
+squeue -u $USER
+
+# Watch the log in real time
+tail -f gnina_split_<JOBID>.log
+```
+
+### Step 5 — Check results
+
+Results will be in `$OUTDIR/result/`:
+```
+result_01.sdf  result_02.sdf  ...  result_12.sdf
+```
+
+Count how many poses were generated:
+```bash
+for f in $OUTDIR/result/result_*.sdf; do
+    echo "$f: $(grep -c '\$\$\$\$' $f) poses"
+done
+```
+
+---
+
+## Understanding the output scores
+
+Each docked pose has 3 scores:
+
+| Score | Meaning | Better when |
+|-------|---------|-------------|
+| `minimizedAffinity` | Binding free energy (kcal/mol) | More negative |
+| `CNNscore` | CNN predicted binding probability (0–1) | Higher |
+| `CNNaffinity` | CNN predicted binding affinity (pKd) | Higher |
+
+---
+
+## Files in this repo
 
 | File | Description |
 |------|-------------|
@@ -26,42 +109,13 @@ Node3: GPU0 GPU1 GPU2 GPU3
 | `node_runner.sh` | Per-node runner — assigns 1 gnina instance per GPU using `CUDA_VISIBLE_DEVICES` |
 | `split_sdf.py` | Python script to split SDF file into N equal chunks |
 
-## Usage
-
-### 1. Edit settings in `gnina_auto_split.sh`
-
-```bash
-SIF=/path/to/gnina.sif          # Singularity image
-RECEPTOR=/path/to/receptor.pdb  # Receptor file
-LIGAND=/path/to/ligands.sdf     # Input ligand SDF (any size)
-AUTOBOX=/path/to/autobox.pdb    # Autobox ligand
-OUTDIR=/path/to/output          # Output directory
-N_GPU=12                         # Total number of GPUs
-```
-
-### 2. Submit
-
-```bash
-sbatch gnina_auto_split.sh
-```
-
-### 3. Results
-
-Output files will be in `$OUTDIR/result/`:
-```
-result_01.sdf  result_02.sdf  ...  result_12.sdf
-```
-
-Each file contains docked poses with scores:
-- `minimizedAffinity` — Binding free energy (kcal/mol), lower is better
-- `CNNscore` — CNN predicted binding probability (0–1), higher is better
-- `CNNaffinity` — CNN predicted binding affinity (pKd), higher is better
+---
 
 ## Resource Configuration
 
 Tested on 3-node × 4-GPU cluster:
 
-```
+```bash
 #SBATCH -N 3
 #SBATCH --ntasks=3
 #SBATCH --ntasks-per-node=1
@@ -79,6 +133,8 @@ Tested on 3-node × 4-GPU cluster:
 | 10    | 161s              | 4.8x    |
 
 **Recommended: `--cpu 8`** (diminishing returns beyond 8)
+
+---
 
 ## Requirements
 
