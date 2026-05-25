@@ -1,32 +1,31 @@
 #!/bin/bash
 #SBATCH --job-name=gnina_split
 #SBATCH -p gpu
-#SBATCH -N 3
-#SBATCH --ntasks=3
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=40
 #SBATCH --mem=0
-#SBATCH --output=/home/nibiohnproj9/cycheng/gnina_test/gnina_split_%j.log
+#SBATCH --output=gnina_split_%j.log
 
 module load singularity/3.5.2
 
-# ========== 設定區 ==========
-SIF=/home/nibiohnproj9/chenyian/dd/sif/gnina_v1.3.2.sif
-RECEPTOR=/home/nibiohnproj9/chenyian/ogawa/sample_b/receptor.pdb
-LIGAND=/home/nibiohnproj9/cycheng/gnina_test/test_121.sdf  # ← 換成你的大SDF
-AUTOBOX=/home/nibiohnproj9/chenyian/ogawa/sample_b/ligand.pdb
-OUTDIR=/home/nibiohnproj9/cycheng/gnina_test/output
-N_GPU=12
-# ============================
+# ========== Settings (edit here only) ==========
+SIF=/path/to/gnina.sif
+RECEPTOR=/path/to/receptor.pdb
+LIGAND=/path/to/ligands.sdf
+AUTOBOX=/path/to/autobox.pdb
+OUTDIR=/path/to/output
+# ================================================
+
+N_GPU=${1:-12}   # passed from submit.sh
+GPU_PER_NODE=4
 
 mkdir -p $OUTDIR/split $OUTDIR/result
 
-echo "=== gnina 自動分割 + 12GPU 並行 $(date) ==="
+echo "=== gnina 自動分割 + ${N_GPU}GPU 並行 $(date) ==="
 echo "Nodes: $SLURM_NODELIST"
 echo "Input: $LIGAND"
 
-# Step 1: 計算總配體數 + 拆分
 echo ""
 echo "[1] SDF 拆分中..."
 TOTAL=$(grep -c '\$\$\$\$' $LIGAND)
@@ -35,18 +34,15 @@ echo "    GPU 數:   $N_GPU"
 PER_GPU=$(( (TOTAL + N_GPU - 1) / N_GPU ))
 echo "    各 GPU:   約 $PER_GPU 個配體"
 
-python3 /home/nibiohnproj9/cycheng/gnina_test/split_sdf.py "$LIGAND" "$OUTDIR/split" $N_GPU
+python3 $(dirname $0)/split_sdf.py "$LIGAND" "$OUTDIR/split" $N_GPU
 
 echo ""
-echo "[2] 12GPU 並行実行中..."
+echo "[2] ${N_GPU}GPU 並行実行中..."
 
-# Step 2: 1ノードに1ステップ、内部で4GPU並行
 NODES=($(scontrol show hostnames "$SLURM_NODELIST"))
 N_NODES=${#NODES[@]}
-GPU_PER_NODE=4
 
 echo "    ノード: ${NODES[@]}"
-mkdir -p $OUTDIR/result
 
 for IDX in $(seq 0 $((N_NODES-1))); do
     NODE=${NODES[$IDX]}
@@ -55,7 +51,7 @@ for IDX in $(seq 0 $((N_NODES-1))); do
 
     srun --ntasks=1 --gres=gpu:4 \
         --nodelist=$NODE \
-        bash /home/nibiohnproj9/cycheng/gnina_test/node_runner.sh \
+        bash $(dirname $0)/node_runner.sh \
         $SIF $RECEPTOR $AUTOBOX $OUTDIR $OUTDIR/split $START $GPU_PER_NODE &
 done
 
